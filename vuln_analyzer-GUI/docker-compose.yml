@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  pentester_tool:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./.env:/app/.env
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production

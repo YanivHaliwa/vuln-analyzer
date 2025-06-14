@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10 col-md-12">
+        <div class="cyber-card">
+            <div class="cyber-card-header">
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="scan-input-tab" data-bs-toggle="tab" data-bs-target="#scan-input" type="button" role="tab" aria-controls="scan-input" aria-selected="true">
+                            <i class="fas fa-terminal me-2"></i>Scan Analysis
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">
+                            <i class="fas fa-history me-2"></i>History
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab" aria-controls="settings" aria-selected="false">
+                            <i class="fas fa-cog me-2"></i>Settings
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="cyber-card-body">
+                <div class="tab-content" id="myTabContent">
+                    <!-- Scan Input Tab -->
+                    <div class="tab-pane fade show active" id="scan-input" role="tabpanel" aria-labelledby="scan-input-tab">
+                        <form action="{{ url_for('analyze') }}" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                                        <input type="text" class="form-control" id="scan_title" name="scan_title" placeholder="Session Title (e.g., HTB-Pandora, VulnNet, TryHackMe-Blue)">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <div class="terminal">
+                                        <div class="terminal-header">
+                                            <div class="terminal-title">scan_output.txt</div>
+                                            <div class="terminal-buttons">
+                                                <div class="terminal-button terminal-close"></div>
+                                                <div class="terminal-button terminal-minimize"></div>
+                                                <div class="terminal-button terminal-maximize"></div>
+                                            </div>
+                                        </div>
+                                        <div class="terminal-content">
+                                            <textarea class="form-control code-font" id="scan_input" name="scan_input" rows="12" placeholder="Paste your nmap, nikto, sqlmap, gobuster, or other scan output here..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label for="scan_files" class="form-label">
+                                            <i class="fas fa-file-upload me-2"></i>Upload Scan Files
+                                        </label>
+                                        <input class="form-control" type="file" id="scan_files" name="scan_files" multiple>
+                                        <div class="form-text">Supported: .txt, .log, .xml, .json, .csv, .nmap, .gnmap</div>
+                                    </div>
+                                    <div id="fileNameDisplay" class="text-light mt-2 small"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Hidden inputs with default values -->
+                            <input type="hidden" name="analysis_type" value="general">
+                            <input type="hidden" name="deep_analysis" value="on">
+                            <input type="hidden" name="content_types[]" value="port">
+                            <input type="hidden" name="content_types[]" value="web">
+                            <input type="hidden" name="content_types[]" value="vuln">
+                            <input type="hidden" name="content_types[]" value="dir">
+
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn-cyber-primary btn-lg">
+                                    <i class="fas fa-radar me-2"></i>Analyze Target
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- History Tab -->
+                    <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+                        <h5 class="mb-4">
+                            <i class="fas fa-history me-2"></i>Previous Scan Analysis
+                        </h5>
+                        
+                        <div id="history-list" class="list-group">
+                            <!-- History will be loaded dynamically -->
+                            <div class="text-center py-5">
+                                <i class="fas fa-database fa-2x mb-3" style="color: var(--accent-secondary);"></i>
+                                <p>Analysis history will appear here</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Tab -->
+                    <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+                        <h5 class="mb-4">
+                            <i class="fas fa-cog me-2"></i>Tool Configuration
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="aiProvider" class="form-label">AI Provider</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-brain"></i></span>
+                                        <select class="form-select" id="aiProvider" name="ai_provider">
+                                            <option value="openai" selected>OpenAI (GPT-4)</option>
+                                            <option value="claude" disabled>Anthropic Claude (Disabled)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="openai_api_key" class="form-label">OpenAI API Key</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                        <input type="password" class="form-control" id="openai_api_key" name="openai_api_key" placeholder="sk-...">
+                                        <button class="btn btn-cyber-outline" type="button" onclick="toggleApiKeyVisibility()">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text mt-2">Your API key is stored locally in the .env file</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="cyber-card mb-4">
+                            <div class="cyber-card-header">
+                                <h6 class="mb-0">Analysis Preferences</h6>
+                            </div>
+                            <div class="cyber-card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="saveScanHistory" checked>
+                                            <label class="form-check-label" for="saveScanHistory">
+                                                Save Scan History
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch mb-3">
+                                            <input class="form-check-input" type="checkbox" id="enableStreaming">
+                                            <label class="form-check-label" for="enableStreaming">
+                                                Enable Streaming Responses
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="autoEnrichCVEs" checked>
+                                            <label class="form-check-label" for="autoEnrichCVEs">
+                                                Auto-enrich CVE Data
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <!-- Hidden input to always include exploits -->
+                                    <input type="hidden" id="includeExploits" value="on">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn-cyber-primary" id="saveSettings">
+                                <i class="fas fa-save me-2"></i>Save Configuration
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+        // Add file name display functionality
+        document.getElementById('scan_files').addEventListener('change', function(e) {
+            let fileNames = Array.from(e.target.files).map(file => file.name).join(', ');
+            if (fileNames) {
+                document.getElementById('fileNameDisplay').textContent = fileNames;
+            }
+        });
+    });
+</script>
+{% endblock %}

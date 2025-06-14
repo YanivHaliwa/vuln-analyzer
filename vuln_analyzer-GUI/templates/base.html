@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pentester Analysis Tool</title>
+    <!-- External CSS Libraries -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: JetBrains Mono for code-like appearance -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+    <!-- Highlight.js theme for code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/tomorrow-night.min.css">
+    
+    <!-- Modern Cybersecurity Theme -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern-cyber.css') }}?v={{ version | default(999999) }}">
+    <!-- CSS Fixes -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fixes.css') }}?v={{ version | default(999999) }}">
+</head>
+<body>
+    <!-- Matrix-like animated background -->
+    <div class="matrix-bg" id="matrix-canvas"></div>
+    
+    <div class="container-fluid">
+        <header class="py-4">
+            <div class="row align-items-center">
+                <div class="col-md-8 offset-md-2 text-center">
+                    <h1>PENTESTER ANALYSIS TOOL</h1>
+                    <div class="header-subtitle">Advanced security scan analysis powered by AI</div>
+                </div>
+            </div>
+        </header>
+
+        <main class="container">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert-cyber alert-cyber-warning mb-4" role="alert">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div>
+                                    {{ message }}
+                                </div>
+                                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="container">
+            <div class="row">
+                <div class="col-md-8 offset-md-2 text-center">
+                    <p>Created by <a href="https://github.com/YanivHaliwa" target="_blank">Yaniv Haliwa</a> for security testing and educational purposes.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- External JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    
+    <!-- Matrix animation script -->
+    <script>
+        // Matrix-style background animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.createElement('canvas');
+            document.getElementById('matrix-canvas').appendChild(canvas);
+            const ctx = canvas.getContext('2d');
+            
+            // Make canvas fullscreen
+            canvas.height = window.innerHeight;
+            canvas.width = window.innerWidth;
+            
+            // Characters to display (hacker-style with tech symbols and letters)
+            const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン$&+,:;=?@#%'.split('');
+            
+            // Font size and columns
+            const fontSize = 14;
+            const columns = canvas.width / fontSize;
+            
+            // Array to track the y position of each column
+            const drops = [];
+            for(let x = 0; x < columns; x++) {
+                drops[x] = Math.floor(Math.random() * canvas.height / fontSize) * -1;
+            }
+            
+            // Drawing function
+            function draw() {
+                // Black background with opacity to create trail effect
+                ctx.fillStyle = 'rgba(10, 14, 23, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Green text
+                ctx.fillStyle = '#00cc66';
+                ctx.font = fontSize + 'px JetBrains Mono';
+                
+                // Loop over each drop
+                for(let i = 0; i < drops.length; i++) {
+                    // Random character
+                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    
+                    // Calculate opacity based on position
+                    const y = drops[i] * fontSize;
+                    const opacity = Math.min(1, (y / canvas.height) * 3);
+                    ctx.fillStyle = `rgba(0, 204, 102, ${opacity})`;
+                    
+                    // Draw the character
+                    ctx.fillText(text, i * fontSize, y);
+                    
+                    // Reset drop when it reaches bottom or randomly
+                    if(y > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    } else {
+                        // Move drop
+                        drops[i]++;
+                    }
+                }
+                
+                // Request next frame
+                requestAnimationFrame(draw);
+            }
+            
+            // Start the animation
+            draw();
+            
+            // Resize canvas when window resizes
+            window.addEventListener('resize', function() {
+                canvas.height = window.innerHeight;
+                canvas.width = window.innerWidth;
+                
+                // Recalculate columns
+                const newColumns = canvas.width / fontSize;
+                
+                // Adjust drops array
+                for(let i = drops.length; i < newColumns; i++) {
+                    drops.push(1);
+                }
+                drops.length = Math.ceil(newColumns);
+            });
+        });
+    </script>
+    
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}?v={{ version | default(999999) }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

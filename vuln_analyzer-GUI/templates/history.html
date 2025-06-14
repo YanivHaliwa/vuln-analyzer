@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card bg-dark border-primary">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Analysis History</h5>
+                    <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Scan
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                {% if history %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Timestamp</th>
+                                    <th>Analysis Type</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in history %}
+                                    <tr>
+                                        <td>{{ item.title }}</td>
+                                        <td>{{ item.timestamp }}</td>
+                                        <td>
+                                            <span class="badge bg-info text-dark">{{ item.analysis_type }}</span>
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('results', session_id=item.session_id) }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye me-1"></i>View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center">No analysis history found. Start by analyzing a scan.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

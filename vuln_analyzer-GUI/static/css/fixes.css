@@ -1,0 +1,304 @@
+/* Global text color fixes for all elements */
+body, p, div, span, h1, h2, h3, h4, h5, h6, 
+.tab-pane, .card-body, .card-header, .card-footer,
+table, tr, td, th, .list-group-item, .alert {
+    color: var(--text-primary) !important;
+}
+
+/* Specific tab content fixes */
+.tab-content {
+    color: var(--text-primary) !important;
+}
+
+/* Ensure all tab pane content is visible */
+.tab-pane {
+    color: var(--text-primary) !important;
+}
+
+/* Ensure good visibility for all text by overriding built-in Bootstrap classes */
+.text-dark, .text-body, .text-muted, .text-black-50, .text-secondary {
+    color: var(--text-primary) !important;
+}
+
+/* AI Analysis tab specific fixes */
+.ai-analysis, 
+.ai-analysis div, 
+.ai-analysis span,
+.ai-analysis p,
+div.ai-analysis, 
+div.ai-analysis *,
+.card-body .ai-analysis,
+.card-body .ai-analysis p,
+#ai .ai-analysis p,
+#ai .card-body .ai-analysis p,
+.card-body .ai-analysis * {
+    color: var(--text-primary) !important;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.ai-analysis p,
+.ai-analysis .p,
+div.ai-analysis p,
+#ai p,
+.card-body p.text-light,
+#ai .card-body p,
+div.card-body div.ai-analysis p {
+    color: var(--text-primary) !important;
+    margin-bottom: 1rem !important;
+    white-space: pre-wrap !important; /* Preserve line breaks */
+    display: block !important;
+}
+
+/* Special high priority rule for AI analysis */
+[id="ai"] [class*="analysis"] p, 
+[id="ai"] [class*="body"] p,
+[id="ai"] p {
+    color: var(--text-primary) !important;
+}
+
+/* Vulnerabilities tab fixes */
+#vulnerabilities .card-body p,
+#vulnerabilities .card-body h6,
+#vulnerabilities .card-body div {
+    color: var(--text-primary) !important;
+}
+
+/* Exploits tab fixes - make all text visible */
+#exploits .card-body,
+#exploits .card-body p,
+#exploits .card-body h6,
+#exploits .card-body div,
+#exploits .card-body ol li,
+#exploits .card-body ul li,
+#exploits .card-body code,
+#exploits .card-body pre,
+#exploits .card-body span,
+#exploits .card-header h5,
+#exploits .card {
+    color: var(--text-primary) !important;
+}
+
+/* Ensure any nested structure in exploit tabs is visible */
+.card-body .mb-3 p,
+.card-body .row .col-md-6 p,
+.mb-3 p, .mb-4 p, 
+.card-body > div > p {
+    color: var(--text-primary) !important;
+}
+
+/* Ports and services tab fixes */
+#ports table td,
+#ports table th {
+    color: var(--text-primary) !important;
+}
+
+/* Web directories tab fixes */
+#web .list-group-item {
+    color: var(--text-primary) !important;
+}
+
+/* Remote files tab fixes */
+#remote .list-group-item {
+    color: var(--text-primary) !important;
+}
+
+/* Subdomains tab fixes */
+#subdomains table td,
+#subdomains table th {
+    color: var(--text-primary) !important;
+}
+
+/* Credentials tab fixes */
+#credentials table td,
+#credentials table th {
+    color: var(--text-primary) !important;
+}
+
+/* Software versions tab fixes */
+#versions table td,
+#versions table th {
+    color: var(--text-primary) !important;
+}
+
+/* Alert text fixes */
+.alert p, .alert h6, .alert-heading, .alert div, .alert span {
+    color: var(--text-primary) !important;
+}
+
+/* Risk assessment list styling */
+.alert ul {
+    padding-left: 1.2rem;
+    margin-top: 0.5rem;
+    list-style-type: none;
+}
+
+.alert ul li {
+    color: var(--text-primary) !important;
+    margin-bottom: 0.5rem;
+    position: relative;
+}
+
+.alert ul li::before {
+    content: "•";
+    position: absolute;
+    left: -1.2rem;
+    color: var(--text-primary);
+    font-weight: bold;
+}
+
+/* Specific alert fixes for risk levels */
+.alert-danger {
+    color: #fff !important;
+    background-color: rgba(220, 53, 69, 0.2) !important;
+    border-color: rgba(220, 53, 69, 0.5) !important;
+    border-left: 5px solid rgba(220, 53, 69, 0.8) !important;
+}
+
+.alert-danger *, .alert-danger h6, .alert-danger p, .alert-danger li, .alert-danger ul {
+    color: #fff !important;
+}
+
+.alert-warning {
+    color: #fff !important;
+    background-color: rgba(255, 193, 7, 0.2) !important;
+    border-color: rgba(255, 193, 7, 0.5) !important;
+    border-left: 5px solid rgba(255, 193, 7, 0.8) !important;
+}
+
+.alert-warning *, .alert-warning h6, .alert-warning p, .alert-warning li, .alert-warning ul {
+    color: #fff !important;
+}
+
+.alert-info {
+    color: #fff !important;
+    background-color: rgba(13, 202, 240, 0.2) !important;
+    border-color: rgba(13, 202, 240, 0.5) !important;
+    border-left: 5px solid rgba(13, 202, 240, 0.8) !important;
+}
+
+.alert-info *, .alert-info h6, .alert-info p, .alert-info li, .alert-info ul {
+    color: #fff !important;
+}
+
+.alert-secondary {
+    color: #fff !important;
+    background-color: rgba(108, 117, 125, 0.2) !important;
+    border-color: rgba(108, 117, 125, 0.5) !important;
+    border-left: 5px solid rgba(108, 117, 125, 0.8) !important;
+}
+
+.alert-secondary *, .alert-secondary h6, .alert-secondary p, .alert-secondary li, .alert-secondary ul {
+    color: #fff !important;
+}
+
+/* Dark background items need light text */
+.bg-dark, .bg-dark .card-body, .bg-dark .card-header,
+.card.bg-dark, .card.bg-dark .card-body, .card.bg-dark .card-header,
+.card.border-danger, .card.border-warning, .card.border-info, .card.border-success,
+.card.border-danger .card-body, .card.border-warning .card-body, 
+.card.border-info .card-body, .card.border-success .card-body {
+    color: var(--text-primary) !important;
+}
+
+/* Add some highlighting for key elements */
+strong, b, .text-bold, .font-weight-bold {
+    color: var(--accent-primary) !important;
+    font-weight: 600;
+}
+
+/* List group item fixes */
+.list-group-item-action, .list-group-item-action div {
+    color: var(--text-primary) !important;
+}
+
+/* Card body fixes */
+.card-body p, .card-body div, .card-body span {
+    color: var(--text-primary) !important;
+}
+
+/* Code and pre-formatted text fixes */
+pre, code {
+    color: var(--accent-info) !important;
+    background-color: rgba(8, 10, 15, 0.8) !important;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+}
+
+/* Badge text fixes */
+.badge {
+    color: white !important;
+}
+
+/* Override Bootstrap's text color utilities */
+.text-white {
+    color: white !important;
+}
+
+.text-primary {
+    color: var(--accent-primary) !important;
+}
+
+.text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+.text-success {
+    color: var(--accent-primary) !important;
+}
+
+.text-danger {
+    color: var(--accent-danger) !important;
+}
+
+.text-warning {
+    color: var(--accent-warning) !important;
+}
+
+.text-info {
+    color: var(--accent-info) !important;
+}
+
+/* Fix for links */
+a {
+    color: var(--accent-info) !important;
+}
+
+a:hover {
+    color: var(--accent-primary) !important;
+}
+
+/* Table row hover fixes */
+.table-hover tbody tr:hover {
+    color: var(--text-primary) !important;
+}
+
+/* Overview tab fixes */
+#overview .card-body {
+    color: var(--text-primary) !important;
+}
+
+/* Alert contrast fixes */
+.alert-danger, .alert-warning, .alert-info, .alert-success {
+    color: var(--text-primary) !important;
+}
+
+/* Fix for chart text if any */
+.chartjs-render-monitor text {
+    fill: var(--text-primary) !important;
+}
+
+/* Ultra-high priority rules to ensure text visibility */
+[class*="tab-pane"] *,
+[class*="card-body"] *,
+[class*="alert"] *,
+[class*="card"] p,
+[class*="card"] div:not(.bg-danger):not(.bg-warning):not(.bg-info):not(.bg-success),
+.vulnerability p, .exploit p,
+[class*="mb-"] p,
+.description *,
+.remediation *,
+.ai-analysis *,
+.list-group-item * {
+    color: var(--text-primary) !important;
+}

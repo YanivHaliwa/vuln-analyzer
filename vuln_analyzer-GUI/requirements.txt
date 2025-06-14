@@ -1,0 +1,10 @@
+flask
+python-dotenv
+openai
+anthropic
+gunicorn
+werkzeug
+requests
+colorama
+flask-wtf
+flask-cors

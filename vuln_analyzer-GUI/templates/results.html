@@ -1,0 +1,804 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10 col-md-12">
+        <div class="cyber-card">
+            <div class="cyber-card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-signature me-2"></i>Results: {{ results.metadata.scan_title }}
+                    </h5>
+                    <div>
+                        <button class="btn-cyber-outline btn-sm me-2" id="exportResults" title="Export as JSON">
+                            <i class="fas fa-file-export me-1"></i>Export
+                        </button>
+                        <a href="{{ url_for('index') }}" class="btn-cyber-outline btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i>Back
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="cyber-card-body">
+                <div class="mb-3">
+                    <div class="d-flex flex-wrap gap-3 mb-3">
+                        <span class="badge-cyber-info">
+                            <i class="fas fa-calendar-alt me-1"></i>
+                            {{ results.metadata.timestamp|replace("T", " ")|truncate(16, true, "") }}
+                        </span>
+                        <span class="badge-cyber-info">
+                            <i class="fas fa-search me-1"></i>
+                            {{ results.metadata.analysis_type|capitalize }} Analysis
+                        </span>
+                        {% if results.metadata.deep_analysis %}
+                        <span class="badge-cyber-warning">
+                            <i class="fas fa-microscope me-1"></i>Deep Analysis
+                        </span>
+                        {% endif %}
+                        {% if results.target_info %}
+                        <span class="badge-cyber-info">
+                            <i class="fas fa-server me-1"></i>
+                            {{ results.target_info.ip_address or results.target_info.hostname or "Target" }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <ul class="nav nav-tabs mb-4" id="resultTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
+                            <i class="fas fa-chart-pie me-1"></i>Overview
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="ports-tab" data-bs-toggle="tab" data-bs-target="#ports" type="button" role="tab" aria-controls="ports" aria-selected="false">
+                            <i class="fas fa-network-wired me-1"></i>Services & Versions
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="web-tab" data-bs-toggle="tab" data-bs-target="#web" type="button" role="tab" aria-controls="web" aria-selected="false">
+                            <i class="fas fa-globe me-1"></i>Web Directories
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="remote-tab" data-bs-toggle="tab" data-bs-target="#remote" type="button" role="tab" aria-controls="remote" aria-selected="false">
+                            <i class="fas fa-folder-open me-1"></i>Remote Files
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="subdomains-tab" data-bs-toggle="tab" data-bs-target="#subdomains" type="button" role="tab" aria-controls="subdomains" aria-selected="false">
+                            <i class="fas fa-sitemap me-1"></i>Subdomains
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="credentials-tab" data-bs-toggle="tab" data-bs-target="#credentials" type="button" role="tab" aria-controls="credentials" aria-selected="false">
+                            <i class="fas fa-key me-1"></i>Credentials
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link text-light" id="vulnerabilities-tab" data-bs-toggle="tab" data-bs-target="#vulnerabilities" type="button" role="tab" aria-controls="vulnerabilities" aria-selected="false">
+                            <i class="fas fa-bug me-1"></i>Vulnerabilities & Exploits
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content mt-3" id="resultTabContent">
+                    <!-- Overview Tab -->
+                    <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+                        <div class="mb-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card bg-dark border-info mb-3">
+                                        <div class="card-header bg-transparent border-info">
+                                            <h5><i class="fas fa-info-circle me-2"></i>Scan Summary</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <p><strong>Title:</strong> {{ results.metadata.scan_title }}</p>
+                                            <p><strong>Timestamp:</strong> {{ results.metadata.timestamp }}</p>
+                                            <p><strong>Target:</strong> {% if results.target_info is defined %}{{ results.target_info.ip_address }}{% else %}N/A{% endif %}</p>
+                                            <p><strong>Open Ports:</strong> {% if results.ports is defined %}{{ results.ports|length }}{% else %}0{% endif %}</p>
+                                            <p><strong>Vulnerabilities Found:</strong> {% if results.vulnerabilities is defined %}{{ results.vulnerabilities|length }}{% else %}0{% endif %}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-dark border-warning mb-3">
+                                        <div class="card-header bg-transparent border-warning">
+                                            <h5><i class="fas fa-exclamation-triangle me-2"></i>Risk Assessment</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            {% if results.risk_assessment is defined %}
+                                                <div class="alert alert-danger">
+                                                    <h6>Critical:</h6>
+                                                    <p>{{ results.risk_assessment.critical }}</p>
+                                                </div>
+                                                <div class="alert alert-warning">
+                                                    <h6>High:</h6>
+                                                    <p>{{ results.risk_assessment.high }}</p>
+                                                </div>
+                                                <div class="alert alert-info">
+                                                    <h6>Medium:</h6>
+                                                    <p>{{ results.risk_assessment.medium }}</p>
+                                                </div>
+                                            {% else %}
+                                                <p>No risk assessment available.</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Services & Versions Tab -->
+                    <div class="tab-pane fade" id="ports" role="tabpanel" aria-labelledby="ports-tab">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Port</th>
+                                        <th>Protocol</th>
+                                        <th>Service</th>
+                                        <th>Version</th>
+                                        <th>State</th>
+                                        <th>Risk</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if results.ports_and_services is defined %}
+                                        {% for port in results.ports_and_services %}
+                                            <tr>
+                                                <td>{{ port.port }}</td>
+                                                <td>{{ port.protocol }}</td>
+                                                <td>{{ port.service }}</td>
+                                                <td>{{ port.version }}</td>
+                                                <td>
+                                                    <span class="badge bg-success">{{ port.state }}</span>
+                                                </td>
+                                                <td>
+                                                    {% if port.risk_level == 'critical' %}
+                                                        <span class="badge bg-danger">Critical</span>
+                                                    {% elif port.risk_level == 'high' %}
+                                                        <span class="badge bg-warning">High</span>
+                                                    {% elif port.risk_level == 'medium' %}
+                                                        <span class="badge bg-info">Medium</span>
+                                                    {% elif port.risk_level == 'low' %}
+                                                        <span class="badge bg-secondary">Low</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">Unknown</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="6" class="text-center">No service data available</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Web Directories Tab -->
+                    <div class="tab-pane fade" id="web" role="tabpanel" aria-labelledby="web-tab">
+                        {% if results.web_directories is defined %}
+                            <div class="card bg-dark mb-3">
+                                <div class="card-header">Web Directories and Files</div>
+                                <div class="card-body">
+                                    <div class="list-group bg-dark">
+                                        {% for item in results.web_directories %}
+                                            <a href="#" class="list-group-item list-group-item-action bg-dark text-light">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <i class="fas {% if item.type == 'directory' %}fa-folder{% else %}fa-file{% endif %} me-2"></i>
+                                                        {{ item.path }}
+                                                    </div>
+                                                    <span class="badge bg-primary rounded-pill">{{ item.status_code }}</span>
+                                                </div>
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No web directory data available.</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Remote Files Tab -->
+                    <div class="tab-pane fade" id="remote" role="tabpanel" aria-labelledby="remote-tab">
+                        {% if results.remote_files is defined %}
+                            <div class="card bg-dark mb-3">
+                                <div class="card-header">Remote File System</div>
+                                <div class="card-body">
+                                    <div class="list-group bg-dark">
+                                        {% for item in results.remote_files %}
+                                            <a href="#" class="list-group-item list-group-item-action bg-dark text-light">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <i class="fas {% if item.type == 'directory' %}fa-folder{% else %}fa-file{% endif %} me-2"></i>
+                                                        {{ item.path }}
+                                                    </div>
+                                                    <div>
+                                                        <span class="badge bg-secondary">{{ item.permissions }}</span>
+                                                        {% if item.owner %}<span class="badge bg-info ms-1">{{ item.owner }}</span>{% endif %}
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No remote file system data available.</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Subdomains Tab -->
+                    <div class="tab-pane fade" id="subdomains" role="tabpanel" aria-labelledby="subdomains-tab">
+                        {% if results.subdomains is defined %}
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Subdomain</th>
+                                            <th>IP Address</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for subdomain in results.subdomains %}
+                                            <tr>
+                                                <td>{{ subdomain.name }}</td>
+                                                <td>{{ subdomain.ip }}</td>
+                                                <td>
+                                                    <span class="badge bg-success">{{ subdomain.status }}</span>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No subdomain data available.</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Credentials Tab -->
+                    <div class="tab-pane fade" id="credentials" role="tabpanel" aria-labelledby="credentials-tab">
+                        {% if results.credentials is defined %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-shield-alt me-2"></i>Sensitive information detected. Handle with care.
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Type</th>
+                                            <th>Username/ID</th>
+                                            <th>Secret/Token</th>
+                                            <th>Source</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for cred in results.credentials %}
+                                            <tr>
+                                                <td>{{ cred.type }}</td>
+                                                <td>{{ cred.username }}</td>
+                                                <td>{{ cred.secret }}</td>
+                                                <td>{{ cred.source }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No credential data available.</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Versions Tab -->
+                    <div class="tab-pane fade" id="versions" role="tabpanel" aria-labelledby="versions-tab">
+                        {% if results.software_versions is defined %}
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Software</th>
+                                            <th>Version</th>
+                                            <th>Service</th>
+                                            <th>CVE Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for sw in results.software_versions %}
+                                            <tr>
+                                                <td>{{ sw.name }}</td>
+                                                <td>{{ sw.version }}</td>
+                                                <td>{{ sw.service }}</td>
+                                                <td>
+                                                    {% if sw.has_vulnerabilities %}
+                                                        <span class="badge bg-danger">Vulnerable</span>
+                                                    {% else %}
+                                                        <span class="badge bg-success">No Known CVEs</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No software version data available.</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- AI Analysis Tab -->
+                    <div class="tab-pane fade" id="ai" role="tabpanel" aria-labelledby="ai-tab">
+                        {% if results.ai_analysis is defined and results.ai_analysis %}
+                            <div class="card bg-dark border-info mb-4">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-robot me-2"></i>AI Security Analysis</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="ai-analysis text-light">
+                                        {% if results.ai_analysis %}
+                                            {% if '<p>' in results.ai_analysis %}
+                                                {{ results.ai_analysis|safe }}
+                                            {% elif '\n\n' in results.ai_analysis %}
+                                                {% set paragraphs = results.ai_analysis.split('\n\n') %}
+                                                {% for paragraph in paragraphs %}
+                                                    {% if paragraph|trim %}
+                                                        <p class="text-light">{{ paragraph|trim|safe }}</p>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% elif '\n' in results.ai_analysis %}
+                                                {% set paragraphs = results.ai_analysis.split('\n') %}
+                                                {% for paragraph in paragraphs %}
+                                                    {% if paragraph|trim %}
+                                                        <p class="text-light">{{ paragraph|trim|safe }}</p>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                <p class="text-light">{{ results.ai_analysis|safe }}</p>
+                                            {% endif %}
+                                        {% else %}
+                                            <p class="text-light">No AI analysis available.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card bg-dark border-info mb-4">
+                                <div class="card-header bg-transparent">
+                                    <h5><i class="fas fa-exclamation-triangle me-2"></i>Risk Assessment</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if results.risk_assessment is defined %}
+                                        {% if results.risk_assessment.critical %}
+                                            <div class="alert alert-danger">
+                                                <h6 class="alert-heading text-light"><i class="fas fa-skull-crossbones me-2"></i>Critical:</h6>
+                                                {% if results.risk_assessment.critical is string %}
+                                                    <p class="text-light">{{ results.risk_assessment.critical }}</p>
+                                                {% elif results.risk_assessment.critical is iterable %}
+                                                    <ul class="mb-0 text-light">
+                                                        {% for item in results.risk_assessment.critical %}
+                                                            <li>{{ item }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if results.risk_assessment.high %}
+                                            <div class="alert alert-warning">
+                                                <h6 class="alert-heading text-light"><i class="fas fa-radiation me-2"></i>High:</h6>
+                                                {% if results.risk_assessment.high is string %}
+                                                    <p class="text-light">{{ results.risk_assessment.high }}</p>
+                                                {% elif results.risk_assessment.high is iterable %}
+                                                    <ul class="mb-0 text-light">
+                                                        {% for item in results.risk_assessment.high %}
+                                                            <li>{{ item }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if results.risk_assessment.medium %}
+                                            <div class="alert alert-info">
+                                                <h6 class="alert-heading text-light"><i class="fas fa-exclamation-circle me-2"></i>Medium:</h6>
+                                                {% if results.risk_assessment.medium is string %}
+                                                    <p class="text-light">{{ results.risk_assessment.medium }}</p>
+                                                {% elif results.risk_assessment.medium is iterable %}
+                                                    <ul class="mb-0 text-light">
+                                                        {% for item in results.risk_assessment.medium %}
+                                                            <li>{{ item }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if results.risk_assessment.low %}
+                                            <div class="alert alert-secondary">
+                                                <h6 class="alert-heading text-light"><i class="fas fa-info-circle me-2"></i>Low:</h6>
+                                                {% if results.risk_assessment.low is string %}
+                                                    <p class="text-light">{{ results.risk_assessment.low }}</p>
+                                                {% elif results.risk_assessment.low is iterable %}
+                                                    <ul class="mb-0 text-light">
+                                                        {% for item in results.risk_assessment.low %}
+                                                            <li>{{ item }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if results.risk_assessment.immediate_actions %}
+                                            <div class="alert alert-danger">
+                                                <h6 class="alert-heading text-light"><i class="fas fa-bolt me-2"></i>Immediate Actions:</h6>
+                                                <ul class="mb-0 text-light">
+                                                    {% for action in results.risk_assessment.immediate_actions %}
+                                                        <li>{{ action }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if not results.risk_assessment.critical and not results.risk_assessment.high and not results.risk_assessment.medium and not results.risk_assessment.low %}
+                                            {% if results.risk_assessment.overall %}
+                                                <div class="alert {% if results.risk_assessment.overall|lower == 'critical' %}alert-danger{% elif results.risk_assessment.overall|lower == 'high' %}alert-warning{% elif results.risk_assessment.overall|lower == 'medium' %}alert-info{% else %}alert-secondary{% endif %}">
+                                                    <h6 class="alert-heading text-light"><i class="fas fa-exclamation-triangle me-2"></i>{{ results.risk_assessment.overall }} Risk</h6>
+                                                    <p class="text-light">{{ results.risk_assessment.rationale }}</p>
+                                                </div>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% else %}
+                                        <p class="text-muted">No risk assessment available.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No AI analysis available.</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Vulnerabilities & Exploits Tab -->
+                    <div class="tab-pane fade" id="vulnerabilities" role="tabpanel" aria-labelledby="vulnerabilities-tab">
+                        <div class="alert alert-danger mb-4">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Warning: The following vulnerabilities and exploitation techniques are provided for educational purposes and authorized penetration testing only.
+                        </div>
+                        
+                        {% if results.vulnerabilities is defined and results.vulnerabilities %}
+                            {% for vuln in results.vulnerabilities %}
+                                {% if vuln.name != "Analysis complete" and vuln.name != "No direct exploits identified" %}
+                                <div class="card bg-dark border-{% if vuln.severity == 'critical' %}danger{% elif vuln.severity == 'high' %}warning{% elif vuln.severity == 'medium' %}info{% elif vuln.severity == 'low' %}secondary{% else %}light{% endif %} mb-4">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-bug me-2"></i>{{ vuln.name }}
+                                        </h5>
+                                        <div>
+                                            <span class="badge bg-{% if vuln.severity == 'critical' %}danger{% elif vuln.severity == 'high' %}warning{% elif vuln.severity == 'medium' %}info{% elif vuln.severity == 'low' %}secondary{% else %}light{% endif %}">
+                                                {% if vuln.severity == 'critical' %}<i class="fas fa-skull-crossbones me-1"></i>{% endif %}
+                                                {{ vuln.severity|capitalize }}
+                                            </span>
+                                            <span class="badge bg-{% if vuln.verified %}success{% else %}warning{% endif %} ms-2">
+                                                {% if vuln.verified %}<i class="fas fa-check me-1"></i>Verified{% else %}<i class="fas fa-question me-1"></i>Potential{% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <div class="mb-3">
+                                                    <h6 class="text-secondary"><i class="fas fa-exclamation-circle me-2"></i>Description</h6>
+                                                    <p class="text-light">{{ vuln.description }}</p>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <h6 class="text-secondary"><i class="fas fa-tools me-2"></i>Affected Component</h6>
+                                                    <p class="text-light">{{ vuln.affected_component }}</p>
+                                                </div>
+                                                
+                                                {% if vuln.remediation %}
+                                                <div class="mb-3">
+                                                    <h6 class="text-secondary"><i class="fas fa-shield-alt me-2"></i>Remediation</h6>
+                                                    <p class="text-light">{{ vuln.remediation }}</p>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                <!-- Show corresponding exploit if it exists -->
+                                                {% if results.exploits is defined and results.exploits %}
+                                                    {% for exploit in results.exploits %}
+                                                        {% if (exploit.vulnerability == vuln.name) or (exploit.name == vuln.name) or (vuln.name in exploit.name) or (exploit.name in vuln.name) %}
+                                                            <div class="mb-3">
+                                                                <h6 class="text-danger"><i class="fas fa-bomb me-2"></i>Exploitation</h6>
+                                                                <p class="text-light">{{ exploit.description }}</p>
+                                                                
+                                                                {% if exploit.command and exploit.command != "# No automated exploit commands available" %}
+                                                                    <div class="card bg-dark border-warning mt-3">
+                                                                        <div class="card-header bg-transparent border-warning">
+                                                                            <h6 class="mb-0"><i class="fas fa-terminal me-2"></i>Exploit Command</h6>
+                                                                        </div>
+                                                                        <div class="card-body">
+                                                                            <div class="bg-black p-3 rounded position-relative">
+                                                                                <button class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2 copy-btn" data-clipboard-target="#command-{{ vuln.name|lower|replace(' ', '-') }}" title="Copy to clipboard">
+                                                                                    <i class="fas fa-copy"></i>
+                                                                                </button>
+                                                                                <code id="command-{{ vuln.name|lower|replace(' ', '-') }}" class="text-light d-block">{{ exploit.command }}</code>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                {% endif %}
+                                                                
+                                                                {% if exploit.steps and exploit.steps|length > 0 %}
+                                                                    <div class="card bg-dark border-secondary mt-3">
+                                                                        <div class="card-header bg-transparent border-secondary">
+                                                                            <h6 class="mb-0"><i class="fas fa-list-ol me-2"></i>Exploitation Steps</h6>
+                                                                        </div>
+                                                                        <div class="card-body">
+                                                                            <ol>
+                                                                                {% for step in exploit.steps %}
+                                                                                    <li class="mb-2">{{ step }}</li>
+                                                                                {% endfor %}
+                                                                            </ol>
+                                                                        </div>
+                                                                    </div>
+                                                                {% endif %}
+                                                                
+                                                                {% if exploit.tools and exploit.tools|length > 0 and exploit.tools[0] != "Manual testing tools" %}
+                                                                    <div class="mt-3">
+                                                                        <h6 class="text-info"><i class="fas fa-tools me-2"></i>Required Tools</h6>
+                                                                        <ul class="list-inline">
+                                                                            {% for tool in exploit.tools %}
+                                                                                <li class="list-inline-item">
+                                                                                    <span class="badge bg-info text-dark">{{ tool }}</span>
+                                                                                </li>
+                                                                            {% endfor %}
+                                                                        </ul>
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div class="col-md-4">
+                                                <div class="card bg-dark mb-3">
+                                                    <div class="card-header bg-transparent">
+                                                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Details</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="mb-2">
+                                                            <small class="text-muted">CVE</small>
+                                                            <p>
+                                                                {% if vuln.cve and vuln.cve != "N/A" %}
+                                                                    <a href="https://nvd.nist.gov/vuln/detail/{{ vuln.cve }}" target="_blank" class="link-info">
+                                                                        {{ vuln.cve }} <i class="fas fa-external-link-alt fa-xs"></i>
+                                                                    </a>
+                                                                {% else %}
+                                                                    {{ vuln.cve }}
+                                                                {% endif %}
+                                                            </p>
+                                                        </div>
+                                                        
+                                                        <div class="mb-2">
+                                                            <small class="text-muted">Status</small>
+                                                            <p>{{ "Verified" if vuln.verified else "Potential" }}</p>
+                                                        </div>
+                                                        
+                                                        {% if vuln.references is defined and vuln.references %}
+                                                        <div class="mb-2">
+                                                            <small class="text-muted">References</small>
+                                                            <ul class="list-unstyled">
+                                                                {% for ref in vuln.references %}
+                                                                <li>
+                                                                    <a href="{{ ref }}" target="_blank" class="link-info">
+                                                                        {{ ref|truncate(30) }} <i class="fas fa-external-link-alt fa-xs"></i>
+                                                                    </a>
+                                                                </li>
+                                                                {% endfor %}
+                                                            </ul>
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <!-- Standalone Exploits (not directly linked to specific vulnerabilities) -->
+                            {% if results.exploits is defined and results.exploits %}
+                                {% for exploit in results.exploits %}
+                                    {% set matched = false %}
+                                    {% if results.vulnerabilities is defined and results.vulnerabilities %}
+                                        {% for vuln in results.vulnerabilities %}
+                                            {% if (exploit.vulnerability == vuln.name) or (exploit.name == vuln.name) or (vuln.name in exploit.name) or (exploit.name in vuln.name) %}
+                                                {% set matched = true %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                    
+                                    {% if not matched and exploit.name != "No direct exploits identified" %}
+                                        <div class="card bg-dark border-danger mb-4">
+                                            <div class="card-header d-flex justify-content-between align-items-center">
+                                                <h5 class="mb-0">
+                                                    <i class="fas fa-bomb me-2"></i>{{ exploit.name }}
+                                                </h5>
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-skull me-1"></i>Exploit
+                                                </span>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row mb-4">
+                                                    <div class="col-md-6">
+                                                        <div class="mb-3">
+                                                            <h6 class="text-secondary"><i class="fas fa-crosshairs me-2"></i>Target</h6>
+                                                            <p>{{ exploit.target }}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="mb-3">
+                                                            <h6 class="text-secondary"><i class="fas fa-bug me-2"></i>Vulnerability</h6>
+                                                            <p>{{ exploit.vulnerability }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="mb-4">
+                                                    <h6 class="text-secondary"><i class="fas fa-info-circle me-2"></i>Description</h6>
+                                                    <p>{{ exploit.description }}</p>
+                                                </div>
+                                                
+                                                <div class="card bg-dark border-secondary mb-4">
+                                                    <div class="card-header bg-transparent border-secondary">
+                                                        <h6 class="mb-0"><i class="fas fa-list-ol me-2"></i>Exploitation Steps</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <ol>
+                                                            {% for step in exploit.steps %}
+                                                                <li class="mb-2">{{ step }}</li>
+                                                            {% endfor %}
+                                                        </ol>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        {% if exploit.command and exploit.command != "# No automated exploit commands available" %}
+                                                            <div class="card bg-dark border-warning mb-3">
+                                                                <div class="card-header bg-transparent border-warning">
+                                                                    <h6 class="mb-0"><i class="fas fa-terminal me-2"></i>Exploit Command</h6>
+                                                                </div>
+                                                                <div class="card-body">
+                                                                    <div class="bg-black p-3 rounded position-relative">
+                                                                        <button class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2 copy-btn" data-clipboard-target="#command-{{ loop.index }}" title="Copy to clipboard">
+                                                                            <i class="fas fa-copy"></i>
+                                                                        </button>
+                                                                        <code id="command-{{ loop.index }}" class="text-light d-block">{{ exploit.command }}</code>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        {% endif %}
+                                                        
+                                                        {% if exploit.tools and exploit.tools|length > 0 and exploit.tools[0] != "Manual testing tools" %}
+                                                            <div class="card bg-dark border-info mb-3">
+                                                                <div class="card-header bg-transparent border-info">
+                                                                    <h6 class="mb-0"><i class="fas fa-tools me-2"></i>Required Tools</h6>
+                                                                </div>
+                                                                <div class="card-body">
+                                                                    <ul class="list-group list-group-flush bg-transparent">
+                                                                        {% for tool in exploit.tools %}
+                                                                            <li class="list-group-item bg-transparent text-light border-secondary">
+                                                                                <i class="fas fa-chevron-right me-2"></i>{{ tool }}
+                                                                            </li>
+                                                                        {% endfor %}
+                                                                    </ul>
+                                                                </div>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                    
+                                                    <div class="col-md-6">
+                                                        {% if exploit.code and exploit.code != "# No exploit code available based on current scan data" %}
+                                                            <div class="card bg-dark border-success mb-3">
+                                                                <div class="card-header bg-transparent border-success d-flex justify-content-between align-items-center">
+                                                                    <h6 class="mb-0"><i class="fas fa-code me-2"></i>Exploit Code</h6>
+                                                                    <span class="badge bg-secondary">{{ exploit.language }}</span>
+                                                                </div>
+                                                                <div class="card-body">
+                                                                    <div class="bg-black p-3 rounded position-relative">
+                                                                        <button class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2 copy-btn" data-clipboard-target="#code-{{ loop.index }}" title="Copy to clipboard">
+                                                                            <i class="fas fa-copy"></i>
+                                                                        </button>
+                                                                        <pre style="max-height: 300px; overflow-y: auto;"><code id="code-{{ loop.index }}" class="language-{{ exploit.language }}">{{ exploit.code }}</code></pre>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>No vulnerabilities were identified in the scan data. This may indicate good security practices, but a full manual assessment is still recommended.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize syntax highlighting
+        document.querySelectorAll('pre code').forEach((el) => {
+            hljs.highlightElement(el);
+        });
+        
+        // Add copy to clipboard functionality
+        document.querySelectorAll('.copy-btn').forEach((button) => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-clipboard-target');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    // Copy text to clipboard
+                    const text = targetElement.textContent;
+                    navigator.clipboard.writeText(text)
+                        .then(() => {
+                            // Visual feedback
+                            const originalHTML = this.innerHTML;
+                            this.innerHTML = '<i class="fas fa-check"></i>';
+                            setTimeout(() => {
+                                this.innerHTML = originalHTML;
+                            }, 1500);
+                        })
+                        .catch(err => {
+                            console.error('Failed to copy: ', err);
+                            alert('Failed to copy to clipboard');
+                        });
+                }
+            });
+        });
+        
+        // Handle export button
+        document.getElementById('exportResults').addEventListener('click', function() {
+            // Get the current results data
+            const results = {{ results|tojson }};
+            
+            // Create a JSON blob
+            const blob = new Blob([JSON.stringify(results, null, 2)], {type: 'application/json'});
+            
+            // Create download link
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'scan_results_' + new Date().toISOString().slice(0,10) + '.json';
+            document.body.appendChild(a);
+            a.click();
+            
+            // Cleanup
+            setTimeout(function() {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 0);
+        });
+    });
+</script>
+{% endblock %}
